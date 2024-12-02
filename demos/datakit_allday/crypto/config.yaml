@@ -1,0 +1,135 @@
+# 基础路径配置
+base_path: "G:/trading"
+timezone: "Asia/Shanghai"  # 默认使用北京时间
+special_pairs:
+  BTCUSDT: 2  # BTCUSDT下载2年
+
+# 存储路径模板
+storage:
+  csv: "storage/csv/{market}/{market_type}"
+  bin: "storage/bin/{market}/{market_type}"
+  status: "storage/status/{market}/{market_type}"
+  common: "storage/common"
+  ticks: "storage/ticks/{market}/{market_type}"
+  logs: "storage/logs/{market}/{market_type}"
+
+# 市场配置
+markets:
+  crypto:
+    exchanges:
+      binance:
+        spot:
+          base_url: "https://api.binance.com"
+          pairs_file: "crypto_spot_pairs.json"
+          data_types: ["kline", "ticks"]
+          kline_intervals: ["1m"]
+          symbol_filters:
+            quote_assets: ["USDT"]
+            min_volume_24h: 1000000
+            exclude_patterns: ["*DOWN*", "*UP*", "*BULL*", "*BEAR*"]
+        futures:
+          base_url: "https://fapi.binance.com"
+          pairs_file: "crypto_futures_pairs.json"
+          data_types: ["kline", "ticks"]
+          kline_intervals: ["1m"]
+          # 交易对筛选配置
+          symbols:
+            # 方式1：直接指定要下载的交易对列表
+            include: []  # 为空则使用筛选条件
+            
+            # 方式2：使用筛选条件
+            filters:
+              min_24h_volume: 10000000
+              max_pairs: 60
+              weights:
+                volume_weight: 1.0
+                price_change_weight: 0.3
+                trades_weight: 0.3
+                volatility_weight: 0.4
+              exclude:
+                - "*DOWN*"
+                - "*UP*"
+              priority:
+                - "BTCUSDT"
+                - "ETHUSDT"
+
+
+  #外汇
+  forex:
+    exchanges:
+      fxcm:
+        spot:
+          base_url: "https://api.fxcm.com"
+          pairs_file: "forex_spot_pairs.json"
+          data_types: ["kline", "ticks"]
+          kline_intervals: ["1m"]
+
+
+# 网络配置
+network:
+  proxy: "http://127.0.0.1:7890"
+  timeout: 30
+  max_retries: 3
+  retry_delay: 5
+  rate_limits:
+    requests_per_second: 5
+    requests_per_minute: 300
+  retry: 3
+  batch_size: 1000
+
+# 日志配置
+logging:
+  level: "INFO"
+  file:
+    enable: true
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    max_size: 10
+    backup_count: 5
+  console:
+    enable: true
+    format: "%(asctime)s - %(levelname)s - %(message)s"
+
+# 数据维护配置
+maintenance:
+  cleanup:
+    enable: true
+    max_days: 365
+    exclude_symbols: ["BTCUSDT", "ETHUSDT"]
+  backup:
+    enable: true
+    max_backups: 7
+
+# 性能配置
+performance:
+  max_concurrent: 3
+  memory_limit: 8192
+  chunk_size: 1000
+  compression:
+    enable: true
+    method: "gzip"
+    level: 6
+
+# 数据下载器配置
+downloaders:
+  crypto:
+    binance:
+      enabled: true
+      concurrent_processes: 4  # 并发进程数
+      rate_limits:
+        spot:
+          bars: 1000   # 每分钟请求数
+          ticks: 1000
+        futures:
+          bars: 1000
+          ticks: 1000
+      batch_size: 1000  # 每次请求的数据量
+      top_n: 50        # 处理排名前N的交易对
+  futures:
+    ctp:
+      enabled: false
+  stocks:
+    eastmoney:
+      enabled: false
+  forex:
+    fxcm:
+      enabled: false
